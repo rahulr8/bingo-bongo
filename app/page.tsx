@@ -1,21 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import { Bingo } from 'lucide-react'
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Dice1 } from "lucide-react";
 
 export default function Home() {
-  const [joinCode, setJoinCode] = useState('')
+  const [joinCode, setJoinCode] = useState("");
 
   return (
     <div className="container mx-auto px-4 py-8">
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
           <CardTitle className="flex items-center justify-center text-3xl font-bold">
-            <Bingo className="mr-2 h-8 w-8" />
+            <Dice1 className="mr-2 h-8 w-8" />
             Bingo Collaboration
           </CardTitle>
           <CardDescription className="text-center">
@@ -35,7 +41,7 @@ export default function Home() {
             <Button
               disabled={!joinCode}
               onClick={() => {
-                console.log('Joining with code:', joinCode)
+                console.log("Joining with code:", joinCode);
               }}
             >
               Join
@@ -44,5 +50,5 @@ export default function Home() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
