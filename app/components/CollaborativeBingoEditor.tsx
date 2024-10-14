@@ -1,41 +1,66 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { BingoCell } from "./BingoGridTypes";
+import React, { useState, useEffect, useCallback } from "react";
 import BingoGrid from "./BingoGrid";
+import { initSocket, getSocket } from "@/utils/socket";
+import { BingoCell } from "./BingoGridTypes";
 
-export function CollaborativeBingoEditor({ code }: { code: string }) {
-  const [grid, setGrid] = useState<BingoCell[][]>(
+interface CollaborativeBingoEditorProps {
+  code: string;
+}
+
+const CollaborativeBingoEditor: React.FC<CollaborativeBingoEditorProps> = ({
+  code,
+}) => {
+  const [grid, setGrid] = useState<BingoCell[][]>(() =>
     Array(5)
       .fill(null)
-      .map(() =>
+      .map((_, rowIndex) =>
         Array(5)
           .fill(null)
-          .map(() => ({
-            id: Math.random().toString(36).substr(2, 9),
+          .map((_, colIndex) => ({
+            id: `${rowIndex}-${colIndex}`,
             text: "",
           }))
       )
   );
+  const [isSocketReady, setIsSocketReady] = useState(false);
 
-  const updateCell = useCallback((row: number, col: number, text: string) => {
-    setGrid((prevGrid) => {
-      const newGrid = [...prevGrid];
-      newGrid[row] = [...newGrid[row]];
-      newGrid[row][col] = { ...newGrid[row][col], text };
-      return newGrid;
+  useEffect(() => {
+    const socket = initSocket();
+    setIsSocketReady(true);
+
+    socket.emit("joinRoom", code);
+
+    socket.on("gridUpdate", (updatedGrid: BingoCell[][]) => {
+      setGrid(updatedGrid);
     });
-  }, []);
 
-  return (
-    <div className="space-y-6 max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold text-center text-gray-100">
-        Collaborative Bingo
-      </h2>
-      <p className="text-center text-sm text-gray-300">
-        Room Code: <span className="font-semibold text-blue-400">{code}</span>
-      </p>
-      <BingoGrid grid={grid} updateCell={updateCell} />
-    </div>
+    return () => {
+      socket.off("gridUpdate");
+      socket.emit("leaveRoom", code);
+    };
+  }, [code]);
+
+  const updateCell = useCallback(
+    (rowIndex: number, colIndex: number, text: string) => {
+      if (!isSocketReady) {
+        console.warn("Socket not ready yet");
+        return;
+      }
+
+      const newGrid = grid.map((row, r) =>
+        row.map((cell, c) =>
+          r === rowIndex && c === colIndex ? { ...cell, text } : cell
+        )
+      );
+      setGrid(newGrid);
+      getSocket().emit("updateGrid", { code, grid: newGrid });
+    },
+    [grid, code, isSocketReady]
   );
-}
+
+  return <BingoGrid grid={grid} updateCell={updateCell} />;
+};
+
+export default CollaborativeBingoEditor;

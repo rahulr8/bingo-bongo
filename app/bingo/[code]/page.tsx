@@ -1,6 +1,6 @@
 "use client";
 
-import { CollaborativeBingoEditor } from "../../components/CollaborativeBingoEditor";
+import CollaborativeBingoEditor from "@/app/components/CollaborativeBingoEditor";
 
 export default function BingoPage({ params }: { params: { code: string } }) {
   return (
