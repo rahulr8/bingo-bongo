@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import BingoGrid from "./BingoGrid";
-import { initSocket, getSocket } from "@/utils/socket";
+import { getSocket } from "@/utils/socket";
 import { BingoCell } from "./BingoGridTypes";
 
 interface CollaborativeBingoEditorProps {
@@ -27,7 +27,7 @@ const CollaborativeBingoEditor: React.FC<CollaborativeBingoEditorProps> = ({
   const [isSocketReady, setIsSocketReady] = useState(false);
 
   useEffect(() => {
-    const socket = initSocket();
+    const socket = getSocket();
     setIsSocketReady(true);
 
     socket.emit("joinRoom", code);
@@ -44,10 +44,7 @@ const CollaborativeBingoEditor: React.FC<CollaborativeBingoEditorProps> = ({
 
   const updateCell = useCallback(
     (rowIndex: number, colIndex: number, text: string) => {
-      if (!isSocketReady) {
-        console.warn("Socket not ready yet");
-        return;
-      }
+      if (!isSocketReady) return;
 
       const newGrid = grid.map((row, r) =>
         row.map((cell, c) =>
