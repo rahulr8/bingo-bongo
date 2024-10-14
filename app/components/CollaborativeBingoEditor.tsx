@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import BingoGrid from "./BingoGrid";
+import Header from "./Header";
 import { getSocket } from "@/utils/socket";
 import { BingoCell } from "@/types/BingoGridTypes";
 
@@ -25,6 +26,7 @@ const CollaborativeBingoEditor: React.FC<CollaborativeBingoEditorProps> = ({
       )
   );
   const [isSocketReady, setIsSocketReady] = useState(false);
+  const [activeConnections, setActiveConnections] = useState(1);
 
   useEffect(() => {
     const socket = getSocket();
@@ -36,8 +38,13 @@ const CollaborativeBingoEditor: React.FC<CollaborativeBingoEditorProps> = ({
       setGrid(updatedGrid);
     });
 
+    socket.on("activeConnections", (count: number) => {
+      setActiveConnections(count);
+    });
+
     return () => {
       socket.off("gridUpdate");
+      socket.off("activeConnections");
       socket.emit("leaveRoom", code);
     };
   }, [code]);
@@ -57,7 +64,16 @@ const CollaborativeBingoEditor: React.FC<CollaborativeBingoEditorProps> = ({
     [grid, code, isSocketReady]
   );
 
-  return <BingoGrid grid={grid} updateCell={updateCell} />;
+  return (
+    <div className="min-h-screen bg-gray-900 text-gray-100">
+      <Header code={code} activeConnections={activeConnections} />
+      <main className="container mx-auto px-4">
+        <div className="max-w-3xl mx-auto">
+          <BingoGrid grid={grid} updateCell={updateCell} />
+        </div>
+      </main>
+    </div>
+  );
 };
 
 export default CollaborativeBingoEditor;
