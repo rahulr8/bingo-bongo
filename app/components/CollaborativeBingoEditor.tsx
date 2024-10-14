@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import BingoGrid from "./BingoGrid";
 import { getSocket } from "@/utils/socket";
-import { BingoCell } from "./BingoGridTypes";
+import { BingoCell } from "@/types/BingoGridTypes";
 
 interface CollaborativeBingoEditorProps {
   code: string;

@@ -1,5 +1,5 @@
 import React from "react";
-import { BingoGridProps } from "./BingoGridTypes";
+import { BingoGridProps } from "../../types/BingoGridTypes";
 
 const BingoGrid: React.FC<BingoGridProps> = ({ grid, updateCell }) => {
   return (
