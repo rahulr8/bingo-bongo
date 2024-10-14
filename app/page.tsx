@@ -1,54 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { Dice1 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const [joinCode, setJoinCode] = useState("");
+  const [roomCode, setRoomCode] = useState("");
+  const router = useRouter();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const code = roomCode.trim() || generateRoomCode();
+    router.push(`/bingo/${code}`);
+  };
+
+  const generateRoomCode = () => {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle className="flex items-center justify-center text-3xl font-bold">
-            <Dice1 className="mr-2 h-8 w-8" />
-            Bingo Collaboration
-          </CardTitle>
-          <CardDescription className="text-center">
-            Create or join a collaborative bingo card
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Link href="/create" passHref>
-            <Button className="w-full">Create New Bingo Card</Button>
-          </Link>
-          <div className="flex space-x-2">
-            <Input
-              placeholder="Enter join code"
-              value={joinCode}
-              onChange={(e) => setJoinCode(e.target.value)}
-            />
-            <Button
-              disabled={!joinCode}
-              onClick={() => {
-                console.log("Joining with code:", joinCode);
-              }}
-            >
-              Join
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-900 text-white">
+      <h1 className="text-4xl font-bold mb-8">Collaborative Bingo</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input
+          type="text"
+          value={roomCode}
+          onChange={(e) => setRoomCode(e.target.value)}
+          placeholder="Enter room code (optional)"
+          className="px-4 py-2 rounded bg-gray-800 text-white"
+        />
+        <button
+          type="submit"
+          className="block w-full px-4 py-2 bg-blue-600 rounded hover:bg-blue-700 transition"
+        >
+          {roomCode ? "Join Game" : "Create New Game"}
+        </button>
+      </form>
+    </main>
   );
 }

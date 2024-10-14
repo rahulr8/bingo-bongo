@@ -1,114 +1,41 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import * as Y from "yjs";
-import { WebrtcProvider } from "y-webrtc";
-
-interface BingoItem {
-  id: string;
-  text: string;
-}
-
-function useYjs(roomName: string) {
-  const [doc, setDoc] = useState<Y.Doc | null>(null);
-  const [provider, setProvider] = useState<WebrtcProvider | null>(null);
-
-  useEffect(() => {
-    const yDoc = new Y.Doc();
-    const yProvider = new WebrtcProvider(roomName, yDoc);
-
-    setDoc(yDoc);
-    setProvider(yProvider);
-
-    return () => {
-      yProvider.disconnect();
-      yDoc.destroy();
-    };
-  }, [roomName]);
-
-  return { doc, provider };
-}
+import { useState, useCallback } from "react";
+import { BingoCell } from "./BingoGridTypes";
+import BingoGrid from "./BingoGrid";
 
 export function CollaborativeBingoEditor({ code }: { code: string }) {
-  const [items, setItems] = useState<BingoItem[]>([]);
-  const { doc, provider } = useYjs(`bingo-collaboration-${code}`);
-
-  const updateItems = useCallback(() => {
-    if (!doc) return;
-    const sharedData = doc.getMap("shared-bingo-data");
-    const newItems = Array.from(sharedData.entries()).map(([id, text]) => ({
-      id,
-      text: text as string,
-    }));
-    setItems(newItems);
-  }, [doc]);
-
-  useEffect(() => {
-    if (!doc) return;
-
-    const sharedData = doc.getMap("shared-bingo-data");
-    sharedData.observe(updateItems);
-    updateItems();
-
-    return () => {
-      sharedData.unobserve(updateItems);
-      provider?.disconnect();
-    };
-  }, [doc, provider, updateItems]);
-
-  const addItem = useCallback(() => {
-    if (!doc) return;
-    const sharedData = doc.getMap("shared-bingo-data");
-    const id = Date.now().toString();
-    sharedData.set(id, "");
-  }, [doc]);
-
-  const updateItem = useCallback(
-    (id: string, text: string) => {
-      if (!doc) return;
-      const sharedData = doc.getMap("shared-bingo-data");
-      sharedData.set(id, text);
-    },
-    [doc]
+  const [grid, setGrid] = useState<BingoCell[][]>(
+    Array(5)
+      .fill(null)
+      .map(() =>
+        Array(5)
+          .fill(null)
+          .map(() => ({
+            id: Math.random().toString(36).substr(2, 9),
+            text: "",
+          }))
+      )
   );
 
-  const deleteItem = useCallback(
-    (id: string) => {
-      if (!doc) return;
-      const sharedData = doc.getMap("shared-bingo-data");
-      sharedData.delete(id);
-    },
-    [doc]
-  );
+  const updateCell = useCallback((row: number, col: number, text: string) => {
+    setGrid((prevGrid) => {
+      const newGrid = [...prevGrid];
+      newGrid[row] = [...newGrid[row]];
+      newGrid[row][col] = { ...newGrid[row][col], text };
+      return newGrid;
+    });
+  }, []);
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">Collaborative Bingo Editor</h2>
-      <p>Room Code: {code}</p>
-      <button
-        onClick={addItem}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Add Item
-      </button>
-      <ul className="space-y-2">
-        {items.map((item) => (
-          <li key={item.id} className="flex items-center space-x-2">
-            <input
-              type="text"
-              value={item.text}
-              onChange={(e) => updateItem(item.id, e.target.value)}
-              className="flex-grow px-2 py-1 border rounded"
-            />
-            <button
-              onClick={() => deleteItem(item.id)}
-              className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              Delete
-            </button>
-          </li>
-        ))}
-      </ul>
+    <div className="space-y-6 max-w-md mx-auto bg-gray-800 p-6 rounded-lg shadow-lg">
+      <h2 className="text-2xl font-bold text-center text-gray-100">
+        Collaborative Bingo
+      </h2>
+      <p className="text-center text-sm text-gray-300">
+        Room Code: <span className="font-semibold text-blue-400">{code}</span>
+      </p>
+      <BingoGrid grid={grid} updateCell={updateCell} />
     </div>
   );
 }
