@@ -1,11 +1,14 @@
-"use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Home() {
+import { createClient } from "@/utils/supabase/server";
+
+export default async function Home() {
   const [roomCode, setRoomCode] = useState("");
   const router = useRouter();
+
+  const supabase = await createClient();
+  const { data: users } = await supabase.from("users").select("id, username");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +22,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-900 text-white">
-      <h1 className="text-4xl font-bold mb-8">Collaborative Bingo</h1>
+      <h1 className="text-4xl font-bold mb-8">Collaborative Bingos</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
